@@ -142,7 +142,7 @@ func AddDockerWatch() {
 							if strings.HasSuffix(path,"*"){
 								docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
 									dockerlayer,strings.Replace(path,"*","",1))
-								iterationWatcher([]string{docker_iterpath}, Watcher,pathList)
+								iterationWatcherRemove([]string{docker_iterpath}, Watcher,pathList)
 							}else {
 								docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 								Watcher.Remove(docker_path) // 以文件夹为监控watcher
@@ -150,6 +150,7 @@ func AddDockerWatch() {
 							}
 						}
 					}
+					delete(docker,dockerlayer) // 防止重复删除
 				}
 			}
 		}
@@ -207,3 +208,22 @@ func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []st
 	}
 }
 
+func iterationWatcherRemove(monList []string, watcher *fsnotify.Watcher, pathList []string)  {
+	for _,p := range monList{
+		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
+			if err != nil {
+				log.Error("file walk error: %v",err)
+				return err
+			}
+			if f.IsDir(){
+				pathList = append(pathList,path)
+				err = watcher.Remove(strings.ToLower(path))
+				log.Debug("remove wather: %v",strings.ToLower(path))
+				if err != nil{
+					log.Error("remove file watcher error: %v %v",err,path)
+				}
+			}
+			return err
+		})
+	}
+}
