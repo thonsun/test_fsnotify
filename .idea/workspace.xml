@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9033a9d1-0f3b-4ef6-abbe-194bd97b41f7" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/AddDockerWatch_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/AddDockerWatch_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,7 +51,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1590463489542</updated>
-      <workItem from="1590463491259" duration="5044000" />
+      <workItem from="1590463491259" duration="5862000" />
     </task>
     <servers />
   </component>

@@ -15,6 +15,7 @@ func TestAddDockerWatch(t *testing.T) {
 	}
 	defer Watcher.Close()
 	stop := make(chan int)
+	AddWatcher()
 	AddDockerWatch()
 	<-stop
 }
