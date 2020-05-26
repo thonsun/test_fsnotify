@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// no such file or directory /etc/ImageMagick-6 阻断迭代
+
 func TestAddDockerWatch(t *testing.T) {
 	log.SetLogLevel(log.DEBUG)
 	Watcher, err = fsnotify.NewWatcher()

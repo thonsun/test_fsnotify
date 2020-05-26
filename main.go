@@ -113,7 +113,9 @@ func AddDockerWatch() {
 								if strings.HasPrefix(path,"/"){
 									pathList = append(pathList,path)
 									if strings.HasSuffix(path,"*"){
-										iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher,pathList)
+										docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
+											dockerlayer,strings.Replace(path,"*","",1))
+										iterationWatcher([]string{docker_iterpath}, Watcher,pathList)
 									}else {
 										docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 										Watcher.Add(docker_path) // 以文件夹为监控watcher
@@ -138,7 +140,9 @@ func AddDockerWatch() {
 						if strings.HasPrefix(path,"/"){
 							pathList = append(pathList,path)
 							if strings.HasSuffix(path,"*"){
-								iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher,pathList)
+								docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
+									dockerlayer,strings.Replace(path,"*","",1))
+								iterationWatcher([]string{docker_iterpath}, Watcher,pathList)
 							}else {
 								docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 								Watcher.Remove(docker_path) // 以文件夹为监控watcher
