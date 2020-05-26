@@ -114,7 +114,7 @@ func AddDockerWatch() {
 									if strings.HasSuffix(path,"*"){
 										docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
 											dockerlayer,strings.Replace(path,"*","",1))
-										iterationWatcher([]string{docker_iterpath}, Watcher,docker_watch[dockerlayer])
+										iterationWatcher([]string{docker_iterpath}, Watcher,docker_watch[dockerlayer][:])
 									}else {
 										docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 										Watcher.Add(docker_path) // 以文件夹为监控watcher
@@ -128,7 +128,7 @@ func AddDockerWatch() {
 				}
 			}
 
-			log.Debug("%v",docker_watch)
+			log.Debug("%#v",docker_watch)
 			// 删除 已经 不存在的docker 容器
 			for dockerlayer,s := range docker{
 				if s != status {
@@ -137,7 +137,7 @@ func AddDockerWatch() {
 						Watcher.Remove(path)
 						log.Debug("remove docker watch:%v",path)
 					}
-					
+
 					//var pathList []string
 					//for _,path := range config.MonitorPath{
 					//	if path == "%web%"{
@@ -157,6 +157,7 @@ func AddDockerWatch() {
 					//		}
 					//	}
 					//}
+					delete(docker_watch,dockerlayer)
 					delete(docker,dockerlayer) // 防止重复删除
 				}
 			}
