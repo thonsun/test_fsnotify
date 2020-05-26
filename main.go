@@ -16,6 +16,7 @@ import (
 var(
 	Watcher *fsnotify.Watcher
 	err error
+    PathList []string
 )
 
 func main() {
@@ -57,16 +58,15 @@ func GetFileUID(filename string) (uid uint64) {
 }
 
 func AddWatcher() {
-	var pathList []string
 	for _,path := range config.MonitorPath{
 		if path == "%web%"{
 			//TODO:web 目录的监控
 		}
 		// 找出要监控的目录:宿主主机
 		if strings.HasPrefix(path,"/"){
-			pathList = append(pathList,path)
+			PathList = append(PathList,path)
 			if strings.HasSuffix(path,"*"){
-				iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher,pathList)
+				iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher, PathList)
 			}else {
 				Watcher.Add(path) // 以文件夹为监控watcher
 				log.Debug("add new wather: [%v]",strings.ToLower(path))
@@ -131,25 +131,30 @@ func AddDockerWatch() {
 			for dockerlayer,s := range docker{
 				if s != status {
 					// 不存在的docker 容器，删除watch
-					var pathList []string
-					for _,path := range config.MonitorPath{
-						if path == "%web%"{
-							//TODO:web 目录的监控
-						}
-						// 找出要监控的目录:宿主主机
-						if strings.HasPrefix(path,"/"){
-							pathList = append(pathList,path)
-							if strings.HasSuffix(path,"*"){
-								docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
-									dockerlayer,strings.Replace(path,"*","",1))
-								iterationWatcherRemove([]string{docker_iterpath}, Watcher,pathList)
-							}else {
-								docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
-								Watcher.Remove(docker_path) // 以文件夹为监控watcher
-								log.Debug("remove wather: [%v]",strings.ToLower(docker_path))
-							}
-						}
+					for _, path := range PathList{
+						docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
+						Watcher.Remove(docker_path)
+						log.Debug("remove wather: [%v]",strings.ToLower(docker_path))
 					}
+					//var pathList []string
+					//for _,path := range config.MonitorPath{
+					//	if path == "%web%"{
+					//		//TODO:web 目录的监控
+					//	}
+					//	// 找出要监控的目录:宿主主机
+					//	if strings.HasPrefix(path,"/"){
+					//		pathList = append(pathList,path)
+					//		if strings.HasSuffix(path,"*"){
+					//			docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
+					//				dockerlayer,strings.Replace(path,"*","",1))
+					//			iterationWatcherRemove([]string{docker_iterpath}, Watcher,pathList)
+					//		}else {
+					//			docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
+					//			Watcher.Remove(docker_path) // 以文件夹为监控watcher
+					//			log.Debug("remove wather: [%v]",strings.ToLower(docker_path))
+					//		}
+					//	}
+					//}
 					delete(docker,dockerlayer) // 防止重复删除
 				}
 			}
