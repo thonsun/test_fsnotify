@@ -26,12 +26,10 @@ func main() {
 		return
 	}
 	defer Watcher.Close()
-	stop := make(chan int)
-	AddWatcher()
-	AddDockerWatch()
-	StartFileMonitor()
-	<-stop
 
+	AddWatcher()
+	go AddDockerWatch()
+	StartFileMonitor()
 }
 
 // 根据uid 获取user
