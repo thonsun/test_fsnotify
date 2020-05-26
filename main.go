@@ -114,7 +114,8 @@ func AddDockerWatch() {
 									if strings.HasSuffix(path,"*"){
 										docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
 											dockerlayer,strings.Replace(path,"*","",1))
-										iterationWatcher([]string{docker_iterpath}, Watcher,docker_watch[dockerlayer][:])
+										paths := iterationWatcherDocker([]string{docker_iterpath}, Watcher)
+										docker_watch[dockerlayer] = append(docker_watch[dockerlayer],paths...)
 									}else {
 										docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 										Watcher.Add(docker_path) // 以文件夹为监控watcher
@@ -128,7 +129,7 @@ func AddDockerWatch() {
 				}
 			}
 
-			log.Debug("%#v",docker_watch)
+			log.Debug("%v",docker_watch)
 			// 删除 已经 不存在的docker 容器
 			for dockerlayer,s := range docker{
 				if s != status {
@@ -216,24 +217,27 @@ func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []st
 	}
 }
 
-func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher, pathList []string)  {
+func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher) []string {
+	pathList := []string{}
 	for _,p := range monList{
 		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
-				log.Error("file walk error: %v",err)
+				log.Error("docker file walk error: %v",err)
 				return err
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
 				err = watcher.Add(strings.ToLower(path))
-				log.Debug("add new wather: %v",strings.ToLower(path))
+				log.Debug("add new docker wather: %v",strings.ToLower(path))
 				if err != nil{
-					log.Error("add file watcher error: %v %v",err,path)
+					log.Error("add docker file watcher error: %v %v",err,path)
 				}
 			}
 			return err
 		})
 	}
+	log.Debug("add docker file:%v",pathList)
+	return pathList
 }
 
 func iterationWatcherRemove(monList []string, watcher *fsnotify.Watcher, pathList []string)  {
