@@ -26,6 +26,11 @@ func main() {
 		return
 	}
 	defer Watcher.Close()
+	stop := make(chan int)
+	AddWatcher()
+	AddDockerWatch()
+	StartFileMonitor()
+	<-stop
 
 }
 
@@ -129,7 +134,6 @@ func AddDockerWatch() {
 				}
 			}
 
-			log.Debug("%v",docker_watch)
 			// 删除 已经 不存在的docker 容器
 			for dockerlayer,s := range docker{
 				if s != status {
@@ -166,7 +170,7 @@ func AddDockerWatch() {
 	}()
 }
 
-func StartFileMonitor(resultChan chan map[string]string) {
+func StartFileMonitor() {
 	log.Debug("%s","Start File Monitor and config the Watcher once...")
 
 	var resultdata map[string]string
@@ -188,8 +192,6 @@ func StartFileMonitor(resultChan chan map[string]string) {
 					resultdata["user"] = user
 				}
 			}
-
-			resultChan <- resultdata
 			log.Debug("[+]Watcher new event: %v",resultdata)
 		case err := <- Watcher.Errors:
 			log.Error("error: %v", err)
@@ -236,7 +238,6 @@ func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher) []strin
 			return err
 		})
 	}
-	log.Debug("add docker file:%v",pathList)
 	return pathList
 }
 
