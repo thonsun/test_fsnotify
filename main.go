@@ -15,8 +15,7 @@ import (
 )
 var(
 	Watcher *fsnotify.Watcher
-	err error
-    PathList []string
+	err      error
 )
 
 func main() {
@@ -64,9 +63,10 @@ func AddWatcher() {
 		}
 		// 找出要监控的目录:宿主主机
 		if strings.HasPrefix(path,"/"){
-			PathList = append(PathList,path)
+			var pathList []string
+			pathList = append(pathList,path)
 			if strings.HasSuffix(path,"*"){
-				iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher, PathList)
+				iterationWatcher([]string{strings.Replace(path,"*","",1)}, Watcher, pathList)
 			}else {
 				Watcher.Add(path) // 以文件夹为监控watcher
 				log.Debug("add new wather: [%v]",strings.ToLower(path))
@@ -82,6 +82,7 @@ func AddDockerWatch() {
 	status := 0
 	go func() {
 		docker := map[string]int{}
+		docker_watch := map[string][]string{}
 		for _ = range ticker.C{
 			// 看是否有 新启动docker 与 容器的退出 => 缓存表
 			// docker 的copy-on-write
@@ -104,21 +105,20 @@ func AddDockerWatch() {
 							// 新启动docker,加入watcher
 							// TODO：在monitro path 前加上docker diff层
 							docker[dockerlayer] = status
-							var pathList []string
 							for _,path := range config.MonitorPath{
 								if path == "%web%"{
 									//TODO:web 目录的监控
 								}
 								// 找出要监控的目录:宿主主机
 								if strings.HasPrefix(path,"/"){
-									pathList = append(pathList,path)
 									if strings.HasSuffix(path,"*"){
 										docker_iterpath := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",
 											dockerlayer,strings.Replace(path,"*","",1))
-										iterationWatcher([]string{docker_iterpath}, Watcher,pathList)
+										iterationWatcher([]string{docker_iterpath}, Watcher,docker_watch[dockerlayer])
 									}else {
 										docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
 										Watcher.Add(docker_path) // 以文件夹为监控watcher
+										docker_watch[dockerlayer] = append(docker_watch[dockerlayer],docker_path)
 										log.Debug("add new wather: [%v]",strings.ToLower(docker_path))
 									}
 								}
@@ -127,15 +127,17 @@ func AddDockerWatch() {
 					}
 				}
 			}
+
+			log.Debug("%v",docker_watch)
 			// 删除 已经 不存在的docker 容器
 			for dockerlayer,s := range docker{
 				if s != status {
 					// 不存在的docker 容器，删除watch
-					for _, path := range PathList{
-						docker_path := fmt.Sprintf("/var/lib/docker/overlay2/%v/merged%v",dockerlayer,path)
-						Watcher.Remove(docker_path)
-						log.Debug("remove wather: [%v]",strings.ToLower(docker_path))
+					for _,path := range docker_watch[dockerlayer]{
+						Watcher.Remove(path)
+						log.Debug("remove docker watch:%v",path)
 					}
+					
 					//var pathList []string
 					//for _,path := range config.MonitorPath{
 					//	if path == "%web%"{
@@ -194,6 +196,26 @@ func StartFileMonitor(resultChan chan map[string]string) {
 }
 
 func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []string)  {
+	for _,p := range monList{
+		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
+			if err != nil {
+				log.Error("file walk error: %v",err)
+				return err
+			}
+			if f.IsDir(){
+				pathList = append(pathList,path)
+				err = watcher.Add(strings.ToLower(path))
+				log.Debug("add new wather: %v",strings.ToLower(path))
+				if err != nil{
+					log.Error("add file watcher error: %v %v",err,path)
+				}
+			}
+			return err
+		})
+	}
+}
+
+func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher, pathList []string)  {
 	for _,p := range monList{
 		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
