@@ -99,9 +99,11 @@ func AddDockerWatch() {
 						dockerlayer := strings.Split(dirname,"-")[0]
 						if _,ok := docker[dockerlayer];ok {
 							docker[dockerlayer] = status // 更新存活状态
+							continue
 						}else {
 							// 新启动docker,加入watcher
 							// TODO：在monitro path 前加上docker diff层
+							docker[dockerlayer] = status
 							var pathList []string
 							for _,path := range config.MonitorPath{
 								if path == "%web%"{
@@ -123,6 +125,7 @@ func AddDockerWatch() {
 					}
 				}
 			}
+			// 删除 已经 不存在的docker 容器
 			for dockerlayer,s := range docker{
 				if s != status {
 					// 不存在的docker 容器，删除watch
