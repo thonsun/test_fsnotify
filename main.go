@@ -206,8 +206,8 @@ func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []st
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
-				err = watcher.Add(strings.ToLower(path))
-				log.Debug("add new wather: %v",strings.ToLower(path))
+				err = watcher.Add(path)
+				log.Debug("add new wather: %v",path)
 				if err != nil{
 					log.Error("add file watcher error: %v %v",err,path)
 				}
