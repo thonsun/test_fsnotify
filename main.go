@@ -227,8 +227,8 @@ func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher) []strin
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
-				err = watcher.Add(strings.ToLower(path))
-				log.Debug("add new docker wather: %v",strings.ToLower(path))
+				err = watcher.Add(path)
+				log.Debug("add new wather: %v",path)
 				if err != nil{
 					log.Error("add docker file watcher error: %v %v",err,path)
 				}
@@ -248,8 +248,8 @@ func iterationWatcherRemove(monList []string, watcher *fsnotify.Watcher, pathLis
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
-				err = watcher.Remove(strings.ToLower(path))
-				log.Debug("remove wather: %v",strings.ToLower(path))
+				err = watcher.Add(path)
+				log.Debug("add new wather: %v",path)
 				if err != nil{
 					log.Error("remove file watcher error: %v %v",err,path)
 				}
