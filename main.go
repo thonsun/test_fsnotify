@@ -202,7 +202,7 @@ func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []st
 		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
 				log.Error("file walk error: %v",err)
-				return err
+				return nil
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
@@ -212,7 +212,7 @@ func iterationWatcher(monList []string, watcher *fsnotify.Watcher, pathList []st
 					log.Error("add file watcher error: %v %v",err,path)
 				}
 			}
-			return err
+			return nil
 		})
 	}
 }
@@ -223,7 +223,7 @@ func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher) []strin
 		filepath.Walk(p, func(path string, f os.FileInfo, err error) error {
 			if err != nil {
 				log.Error("docker file walk error: %v",err)
-				return err
+				return nil
 			}
 			if f.IsDir(){
 				pathList = append(pathList,path)
@@ -233,7 +233,7 @@ func iterationWatcherDocker(monList []string, watcher *fsnotify.Watcher) []strin
 					log.Error("add docker file watcher error: %v %v",err,path)
 				}
 			}
-			return err
+			return nil
 		})
 	}
 	return pathList
